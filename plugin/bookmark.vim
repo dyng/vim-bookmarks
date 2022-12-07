@@ -60,7 +60,7 @@ function! BookmarkToggle()
   call s:refresh_line_numbers()
   let file = expand("%:p")
   if file ==# ""
-    return
+    return 0
   endif
   let current_line = line('.')
   if bm#has_bookmark_at_line(file, current_line)
@@ -68,14 +68,16 @@ function! BookmarkToggle()
       let delete = confirm("Delete Annotated bookmarks?", "&Yes\n&No", 2)
       if (delete !=# 1)
         echo "Ignore!"
-        return
+        return 0
       endif
     endif
     call s:bookmark_remove(file, current_line)
     echo "Bookmark removed"
+    return 2
   else
     call s:bookmark_add(file, current_line)
     echo "Bookmark added"
+    return 1
   endif
 endfunction
 command! ToggleBookmark call CallDeprecatedCommand('BookmarkToggle', [])
@@ -127,6 +129,15 @@ function! BookmarkAnnotate(...)
 endfunction
 command! -nargs=* Annotate call CallDeprecatedCommand('BookmarkAnnotate', [<q-args>, 0])
 command! -nargs=* BookmarkAnnotate call BookmarkAnnotate(<q-args>, 0)
+
+
+function! BookmarkToggleAndAnnotate()
+    let res = BookmarkToggle()
+    if res == 1
+        call BookmarkAnnotate()
+    endif
+endfunction
+command! BookmarkToggleAndAnnotate call BookmarkToggleAndAnnotate()
 
 function! BookmarkClear()
   call s:refresh_line_numbers()
